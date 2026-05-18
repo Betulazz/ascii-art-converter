@@ -27,7 +27,7 @@ export function renderFiglet(text: string, fontSource: string): string {
 
 export function parseFlf(source: string): ParsedFont {
   const lines = source.replace(/\r\n/g, "\n").split("\n");
-  const header = lines[0]?.match(/^flf2a(.)(?:\s+)(\d+)(?:\s+)(\d+)(?:\s+)(\d+)(?:\s+)(-?\d+)(?:\s+)(\d+)/);
+  const header = lines[0]?.match(/^[ft]lf2a(.)(?:\s+)(\d+)(?:\s+)(\d+)(?:\s+)(\d+)(?:\s+)(-?\d+)(?:\s+)(\d+)/);
 
   if (!header) {
     throw new Error("Invalid FLF header");

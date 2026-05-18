@@ -8,23 +8,25 @@ export function TextAsciiTab() {
   const [text, setText] = useState("ASCII");
   const [fontName, setFontName] = useState(FIGLET_FONT_NAMES.includes("Standard") ? "Standard" : FIGLET_FONT_NAMES[0]);
   const [fontSource, setFontSource] = useState("");
-  const [status, setStatus] = useState("");
+  const [loadStatus, setLoadStatus] = useState("");
+  const [exportStatus, setExportStatus] = useState("");
 
   useEffect(() => {
     let isCurrent = true;
-    setStatus(`正在加载字体：${fontName}`);
+    setLoadStatus(`正在加载字体：${fontName}`);
+    setExportStatus("");
 
     loadFigletFont(fontName)
       .then((source) => {
         if (isCurrent) {
           setFontSource(source);
-          setStatus("");
+          setLoadStatus("");
         }
       })
       .catch((error) => {
         if (isCurrent) {
           setFontSource("");
-          setStatus(error instanceof Error ? error.message : String(error));
+          setLoadStatus(error instanceof Error ? error.message : String(error));
         }
       });
 
@@ -33,7 +35,23 @@ export function TextAsciiTab() {
     };
   }, [fontName]);
 
-  const renderedText = useMemo(() => (fontSource ? renderFiglet(text, fontSource) : ""), [fontSource, text]);
+  const renderState = useMemo(() => {
+    if (!fontSource) {
+      return { text: "", error: "" };
+    }
+
+    try {
+      return { text: renderFiglet(text, fontSource), error: "" };
+    } catch (error) {
+      return {
+        text: "",
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }, [fontSource, text]);
+
+  const renderedText = renderState.text;
+  const status = loadStatus || renderState.error || exportStatus;
   const result = useMemo(
     () => ({
       text: renderedText,
@@ -63,7 +81,7 @@ export function TextAsciiTab() {
           </label>
         </div>
         <div className="actions">
-          <ExportActions text={renderedText} fileStem="text-ascii" onStatus={setStatus} />
+          <ExportActions text={renderedText} fileStem="text-ascii" onStatus={setExportStatus} />
         </div>
         {status && <p className="status">{status}</p>}
       </aside>

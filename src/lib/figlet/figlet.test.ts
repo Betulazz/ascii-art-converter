@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { renderFiglet } from "./figlet";
+import { loadFigletFont } from "./fonts";
 import { STANDARD_FLF } from "./standard";
 
 describe("renderFiglet", () => {
@@ -19,5 +20,14 @@ describe("renderFiglet", () => {
 
   it("returns an empty string for whitespace-only input", () => {
     expect(renderFiglet("   ", STANDARD_FLF)).toBe("");
+  });
+
+  it("renders TAAG TOIlet/TLF fonts such as ASCII 12", async () => {
+    const ascii12 = await loadFigletFont("ASCII 12");
+
+    const output = renderFiglet("ASCII", ascii12);
+
+    expect(output).toContain("####");
+    expect(output.split("\n").length).toBe(10);
   });
 });
