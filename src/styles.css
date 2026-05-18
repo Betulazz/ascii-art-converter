@@ -71,7 +71,8 @@ p {
 }
 
 .tabs button,
-.primary-button {
+.primary-button,
+.secondary-button {
   border: 0;
   border-radius: 6px;
   display: inline-flex;
@@ -179,7 +180,16 @@ textarea:focus {
   background: #2563eb;
 }
 
-.primary-button:disabled {
+.secondary-button {
+  min-height: 42px;
+  padding: 0 15px;
+  color: #17201d;
+  background: #ffffff;
+  border: 1px solid rgba(24, 33, 31, 0.16);
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
