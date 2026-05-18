@@ -1,16 +1,39 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ExportActions } from "./ExportActions";
 import { AsciiPreview } from "./AsciiPreview";
-import { FIGLET_FONTS } from "../lib/figlet/fonts";
+import { FIGLET_FONT_NAMES, loadFigletFont } from "../lib/figlet/fonts";
 import { renderFiglet } from "../lib/figlet/figlet";
 
 export function TextAsciiTab() {
   const [text, setText] = useState("ASCII");
-  const [fontName, setFontName] = useState(FIGLET_FONTS[0].name);
+  const [fontName, setFontName] = useState(FIGLET_FONT_NAMES.includes("Standard") ? "Standard" : FIGLET_FONT_NAMES[0]);
+  const [fontSource, setFontSource] = useState("");
   const [status, setStatus] = useState("");
 
-  const font = FIGLET_FONTS.find((item) => item.name === fontName) ?? FIGLET_FONTS[0];
-  const renderedText = useMemo(() => renderFiglet(text, font.source), [font.source, text]);
+  useEffect(() => {
+    let isCurrent = true;
+    setStatus(`正在加载字体：${fontName}`);
+
+    loadFigletFont(fontName)
+      .then((source) => {
+        if (isCurrent) {
+          setFontSource(source);
+          setStatus("");
+        }
+      })
+      .catch((error) => {
+        if (isCurrent) {
+          setFontSource("");
+          setStatus(error instanceof Error ? error.message : String(error));
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [fontName]);
+
+  const renderedText = useMemo(() => (fontSource ? renderFiglet(text, fontSource) : ""), [fontSource, text]);
   const result = useMemo(
     () => ({
       text: renderedText,
@@ -31,9 +54,9 @@ export function TextAsciiTab() {
           <label>
             FIGlet 字体
             <select value={fontName} onChange={(event) => setFontName(event.target.value)}>
-              {FIGLET_FONTS.map((item) => (
-                <option key={item.name} value={item.name}>
-                  {item.name}
+              {FIGLET_FONT_NAMES.map((name) => (
+                <option key={name} value={name}>
+                  {name}
                 </option>
               ))}
             </select>
