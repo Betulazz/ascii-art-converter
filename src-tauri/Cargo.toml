@@ -1,0 +1,21 @@
+[package]
+name = "ascii-art-converter"
+version = "0.1.0"
+description = "Desktop ASCII art converter"
+authors = ["ascii-art-converter"]
+edition = "2021"
+
+[lib]
+name = "ascii_art_converter_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "bmp", "webp"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+thiserror = "2"
