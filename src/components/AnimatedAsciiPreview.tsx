@@ -51,7 +51,7 @@ export function AnimatedAsciiPreview({ result }: AnimatedAsciiPreviewProps) {
 function FramePreview({ frame }: { frame: GifAsciiFrame }) {
   if (frame.coloredCells?.length) {
     return (
-      <div className="preview color-preview" style={{ gridTemplateColumns: `repeat(${frame.width}, 0.72ch)` }}>
+      <div className="preview color-preview" style={{ gridTemplateColumns: `repeat(${frame.width}, 1ch)` }}>
         {frame.coloredCells.map((cell, index) => (
           <span key={`${index}-${cell.char}`} style={{ color: cell.foreground }}>
             {cell.char === " " ? "\u00a0" : cell.char}

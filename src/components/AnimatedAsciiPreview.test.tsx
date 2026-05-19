@@ -89,4 +89,33 @@ describe("AnimatedAsciiPreview", () => {
 
     expect(screen.getByText("AA")).toBeTruthy();
   });
+
+  it("uses the same character width for color and text previews", () => {
+    const { container } = render(
+      <AnimatedAsciiPreview
+        result={{
+          frames: [
+            {
+              text: "AB",
+              width: 2,
+              height: 1,
+              delayMs: 50,
+              coloredCells: [
+                { char: "A", foreground: "#ffffff" },
+                { char: "B", foreground: "#ffffff" },
+              ],
+            },
+          ],
+          width: 2,
+          height: 1,
+          frameCount: 1,
+          totalDurationMs: 50,
+        }}
+      />,
+    );
+
+    expect(container.querySelector(".color-preview")?.getAttribute("style")).toContain(
+      "grid-template-columns: repeat(2, 1ch)",
+    );
+  });
 });
