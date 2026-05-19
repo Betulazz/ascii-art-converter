@@ -20,8 +20,31 @@ export type AsciiResult = {
   coloredCells?: ColoredCell[];
 };
 
+export type GifAsciiFrame = {
+  text: string;
+  width: number;
+  height: number;
+  delayMs: number;
+  coloredCells?: ColoredCell[];
+};
+
+export type GifAsciiResult = {
+  frames: GifAsciiFrame[];
+  width: number;
+  height: number;
+  frameCount: number;
+  totalDurationMs: number;
+};
+
+export type ImageConversionResult = AsciiResult | GifAsciiResult;
+
 export type ExportTxtRequest = {
   text: string;
+  path: string;
+};
+
+export type ExportGifRequest = {
+  gifBytes: number[];
   path: string;
 };
 

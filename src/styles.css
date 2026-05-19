@@ -199,6 +199,29 @@ textarea:focus {
   display: flex;
 }
 
+.animated-preview {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.animation-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #33403b;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.compact-button {
+  min-height: 34px;
+  padding: 0 11px;
+}
+
 .preview {
   width: 100%;
   min-height: 520px;

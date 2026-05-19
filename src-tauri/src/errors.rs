@@ -5,7 +5,7 @@ use thiserror::Error;
 pub enum AppError {
     #[error("{0}")]
     Validation(String),
-    #[error("Unsupported image format. Supported formats: PNG, JPG, JPEG, BMP, WEBP.")]
+    #[error("Unsupported image format. Supported formats: PNG, JPG, JPEG, BMP, WEBP, GIF.")]
     UnsupportedFormat,
     #[error("Failed to decode image: {0}")]
     ImageDecode(String),

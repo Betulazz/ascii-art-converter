@@ -8,6 +8,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::convert_image_to_ascii,
+            commands::convert_gif_to_ascii,
+            commands::export_ascii_gif,
             commands::export_ascii_txt
         ])
         .run(tauri::generate_context!())
