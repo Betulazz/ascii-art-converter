@@ -53,6 +53,17 @@ export type ExportPngRequest = {
   path: string;
 };
 
+export type ExportConsoleFrame = {
+  text: string;
+  delayMs: number;
+};
+
+export type ExportConsoleRequest = {
+  title: string;
+  text?: string;
+  frames?: ExportConsoleFrame[];
+};
+
 export type TextAsciiRequest = {
   text: string;
   fontName: string;

@@ -1,12 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ImageAsciiTab, buildGifExportText } from "./ImageAsciiTab";
-import { convertGifToAscii, convertImageToAscii } from "../lib/tauri";
+import { convertGifToAscii, convertImageToAscii, exportAsciiConsole } from "../lib/tauri";
 
 vi.mock("../lib/tauri", () => ({
   chooseTxtExportPath: vi.fn(),
   convertGifToAscii: vi.fn(),
   convertImageToAscii: vi.fn(),
+  exportAsciiConsole: vi.fn(),
   exportAsciiTxt: vi.fn(),
 }));
 
@@ -56,5 +57,40 @@ describe("ImageAsciiTab", () => {
     expect(text).toContain("AA");
     expect(text).toContain("Frame 2 / 2 (80 ms)");
     expect(text).toContain("BB");
+  });
+
+  it("opens gif ascii frames in a cmd console window", async () => {
+    vi.mocked(convertGifToAscii).mockResolvedValue({
+      frames: [
+        { text: "AA", width: 2, height: 1, delayMs: 50 },
+        { text: "BB", width: 2, height: 1, delayMs: 80 },
+      ],
+      width: 2,
+      height: 1,
+      frameCount: 2,
+      totalDurationMs: 130,
+    });
+    vi.mocked(exportAsciiConsole).mockResolvedValue("Opened CMD console.");
+
+    const { container } = render(<ImageAsciiTab />);
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const convertButton = container.querySelector("button.primary-button") as HTMLButtonElement;
+    const file = new File([new Uint8Array([1, 2, 3])], "animation.gif", { type: "image/gif" });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(convertButton);
+    await waitFor(() => expect(convertGifToAscii).toHaveBeenCalledOnce());
+
+    fireEvent.click(screen.getByRole("button", { name: /CMD/i }));
+
+    await waitFor(() =>
+      expect(exportAsciiConsole).toHaveBeenCalledWith({
+        title: "animation",
+        frames: [
+          { text: "AA", delayMs: 50 },
+          { text: "BB", delayMs: 80 },
+        ],
+      }),
+    );
   });
 });

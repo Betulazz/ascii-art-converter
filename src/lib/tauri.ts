@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
 import type {
   AsciiResult,
+  ExportConsoleRequest,
   ExportGifRequest,
   ExportPngRequest,
   ExportTxtRequest,
@@ -27,6 +28,10 @@ export async function exportAsciiGif(input: ExportGifRequest): Promise<string> {
 
 export async function exportAsciiPng(input: ExportPngRequest): Promise<string> {
   return invokeCommand<string>("export_ascii_png", { input });
+}
+
+export async function exportAsciiConsole(input: ExportConsoleRequest): Promise<string> {
+  return invokeCommand<string>("export_ascii_console", { input });
 }
 
 export async function chooseTxtExportPath(defaultPath: string): Promise<string | null> {

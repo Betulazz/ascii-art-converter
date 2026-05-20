@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { convertGifToAscii, exportAsciiGif, exportAsciiPng } from "./tauri";
+import { convertGifToAscii, exportAsciiConsole, exportAsciiGif, exportAsciiPng } from "./tauri";
 import { invoke } from "@tauri-apps/api/core";
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -52,6 +52,16 @@ describe("tauri api wrappers", () => {
 
     expect(invoke).toHaveBeenCalledWith("export_ascii_png", {
       input: { pngBytes: [137, 80, 78, 71], path: "C:/tmp/ascii.png" },
+    });
+  });
+
+  it("opens ascii art through the console command", async () => {
+    vi.mocked(invoke).mockResolvedValue("Opened CMD console.");
+
+    await expect(exportAsciiConsole({ title: "sample", text: "@@" })).resolves.toBe("Opened CMD console.");
+
+    expect(invoke).toHaveBeenCalledWith("export_ascii_console", {
+      input: { title: "sample", text: "@@" },
     });
   });
 });

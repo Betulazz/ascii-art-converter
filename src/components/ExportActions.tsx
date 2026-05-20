@@ -1,13 +1,17 @@
-import { Copy, Download } from "lucide-react";
-import { chooseTxtExportPath, exportAsciiTxt } from "../lib/tauri";
+import { Copy, Download, Terminal } from "lucide-react";
+import { chooseTxtExportPath, exportAsciiConsole, exportAsciiTxt } from "../lib/tauri";
+import type { ExportConsoleFrame } from "../types/ascii";
 
 type ExportActionsProps = {
   text: string;
   fileStem: string;
   onStatus: (message: string) => void;
+  consoleFrames?: ExportConsoleFrame[];
 };
 
-export function ExportActions({ text, fileStem, onStatus }: ExportActionsProps) {
+export function ExportActions({ text, fileStem, onStatus, consoleFrames }: ExportActionsProps) {
+  const canOpenConsole = Boolean(text || consoleFrames?.length);
+
   async function handleCopy() {
     if (!text) {
       onStatus("没有可复制的字符画。");
@@ -41,6 +45,28 @@ export function ExportActions({ text, fileStem, onStatus }: ExportActionsProps) 
     }
   }
 
+  async function handleOpenConsole() {
+    if (!canOpenConsole) {
+      onStatus("没有可输出到 CMD 的字符画。");
+      return;
+    }
+
+    try {
+      const title = fileStem || "ascii-art";
+      const message = await exportAsciiConsole(
+        consoleFrames?.length
+          ? { title, frames: consoleFrames }
+          : {
+              title,
+              text,
+            },
+      );
+      onStatus(message);
+    } catch (error) {
+      onStatus(error instanceof Error ? error.message : String(error));
+    }
+  }
+
   return (
     <>
       <button className="secondary-button" onClick={handleCopy} disabled={!text}>
@@ -50,6 +76,10 @@ export function ExportActions({ text, fileStem, onStatus }: ExportActionsProps) 
       <button className="primary-button" onClick={handleExport} disabled={!text}>
         <Download size={17} />
         导出 TXT
+      </button>
+      <button className="secondary-button" onClick={handleOpenConsole} disabled={!canOpenConsole}>
+        <Terminal size={17} />
+        输出到 CMD
       </button>
     </>
   );

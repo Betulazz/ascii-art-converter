@@ -70,3 +70,18 @@ pub struct ExportPngRequest {
     pub png_bytes: Vec<u8>,
     pub path: String,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportConsoleFrame {
+    pub text: String,
+    pub delay_ms: u32,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportConsoleRequest {
+    pub title: String,
+    pub text: Option<String>,
+    pub frames: Option<Vec<ExportConsoleFrame>>,
+}

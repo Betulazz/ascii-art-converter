@@ -1,9 +1,9 @@
 use crate::errors::AppError;
 use crate::image_ascii::converter::{convert_gif, convert_image};
-use crate::image_ascii::export::{write_gif, write_png, write_txt};
+use crate::image_ascii::export::{open_console, write_gif, write_png, write_txt};
 use crate::image_ascii::options::{
-    AsciiResult, ExportGifRequest, ExportPngRequest, ExportTxtRequest, GifAsciiResult,
-    ImageAsciiRequest,
+    AsciiResult, ExportConsoleRequest, ExportGifRequest, ExportPngRequest, ExportTxtRequest,
+    GifAsciiResult, ImageAsciiRequest,
 };
 
 #[tauri::command]
@@ -29,4 +29,9 @@ pub fn export_ascii_gif(input: ExportGifRequest) -> Result<String, AppError> {
 #[tauri::command]
 pub fn export_ascii_png(input: ExportPngRequest) -> Result<String, AppError> {
     write_png(input)
+}
+
+#[tauri::command]
+pub fn export_ascii_console(input: ExportConsoleRequest) -> Result<String, AppError> {
+    open_console(input)
 }
