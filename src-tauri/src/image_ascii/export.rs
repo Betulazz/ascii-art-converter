@@ -316,18 +316,19 @@ fn build_gif_console_script(frames: &[ConsoleFrameFile], columns: u32, lines: u3
         "{}\r\nSet-ConsoleFontSize {font_size}\r\ncmd /c \"mode con: cols={columns} lines={lines}\"\r\n",
         powershell_console_font_helper()
     );
+    script.push_str("while ($true) {\r\n");
     for frame in frames {
-        script.push_str("Clear-Host\r\n");
+        script.push_str("  Clear-Host\r\n");
         script.push_str(&format!(
-            "Get-Content -LiteralPath '{}' -Raw -Encoding UTF8 | Write-Host -NoNewline\r\n",
+            "  Get-Content -LiteralPath '{}' -Raw -Encoding UTF8 | Write-Host -NoNewline\r\n",
             escape_powershell_single_quoted(&frame.path.to_string_lossy())
         ));
         script.push_str(&format!(
-            "Start-Sleep -Milliseconds {}\r\n",
+            "  Start-Sleep -Milliseconds {}\r\n",
             frame.delay_ms
         ));
     }
-    script.push_str("Write-Host\r\nRead-Host 'Press Enter to close'\r\n");
+    script.push_str("}\r\n");
     script
 }
 
@@ -431,7 +432,7 @@ mod tests {
     }
 
     #[test]
-    fn gif_console_script_clears_and_waits_between_frames() {
+    fn gif_console_script_loops_and_waits_between_frames() {
         let script = build_gif_console_script(
             &[
                 ConsoleFrameFile {
@@ -452,12 +453,13 @@ mod tests {
             8,
         );
 
+        assert!(script.contains("while ($true)"));
         assert!(script.contains("Clear-Host"));
         assert!(script.contains("Get-Content -LiteralPath 'C:\\Temp\\frame-1.txt'"));
         assert!(script.contains("Start-Sleep -Milliseconds 50"));
         assert!(script.contains("Get-Content -LiteralPath 'C:\\Temp\\frame-2.txt'"));
         assert!(script.contains("Start-Sleep -Milliseconds 80"));
-        assert!(script.contains("Read-Host 'Press Enter to close'"));
+        assert!(!script.contains("Read-Host 'Press Enter to close'"));
     }
 
     #[test]
