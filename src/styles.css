@@ -267,6 +267,14 @@ textarea:focus {
   line-height: 1;
 }
 
+.color-preview-canvas-frame {
+  display: block;
+}
+
+.color-preview-canvas {
+  display: block;
+}
+
 @media (max-width: 820px) {
   .app-shell {
     padding: 18px;

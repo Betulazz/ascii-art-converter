@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ImageAsciiTab, buildGifExportText } from "./ImageAsciiTab";
 import { convertGifToAscii, convertImageToAscii, exportAsciiConsole } from "../lib/tauri";
 
@@ -14,6 +14,10 @@ vi.mock("../lib/tauri", () => ({
 describe("ImageAsciiTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("renders the empty preview placeholder as readable Chinese text", () => {
@@ -100,6 +104,14 @@ describe("ImageAsciiTab", () => {
   });
 
   it("passes colored gif cells to the cmd console command", async () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+      clearRect: vi.fn(),
+      fillText: vi.fn(),
+      measureText: vi.fn(() => ({ width: 7 })),
+      font: "",
+      fillStyle: "",
+      textBaseline: "",
+    } as unknown as CanvasRenderingContext2D);
     vi.mocked(convertGifToAscii).mockResolvedValue({
       frames: [
         {

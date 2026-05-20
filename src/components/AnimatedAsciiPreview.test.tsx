@@ -3,8 +3,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AnimatedAsciiPreview } from "./AnimatedAsciiPreview";
 
 describe("AnimatedAsciiPreview", () => {
+  let restoreCreateElement: (() => void) | null = null;
+
   afterEach(() => {
     vi.useRealTimers();
+    restoreCreateElement?.();
+    restoreCreateElement = null;
   });
 
   it("shows the first frame by default and advances while playing", () => {
@@ -90,7 +94,30 @@ describe("AnimatedAsciiPreview", () => {
     expect(screen.getByText("AA")).toBeTruthy();
   });
 
-  it("uses the same character width for color and text previews", () => {
+  it("draws colored frames on a canvas instead of rendering one span per cell", () => {
+    const fillText = vi.fn();
+    const measureText = vi.fn(() => ({ width: 7 }));
+    const originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, "createElement").mockImplementation((tagName: string) => {
+      if (tagName !== "canvas") {
+        return originalCreateElement(tagName);
+      }
+
+      const canvas = originalCreateElement("canvas") as HTMLCanvasElement;
+      Object.defineProperty(canvas, "getContext", {
+        value: vi.fn(() => ({
+          clearRect: vi.fn(),
+          fillText,
+          measureText,
+          font: "",
+          fillStyle: "",
+          textBaseline: "",
+        })),
+      });
+      return canvas;
+    });
+    restoreCreateElement = () => vi.restoreAllMocks();
+
     const { container } = render(
       <AnimatedAsciiPreview
         result={{
@@ -114,8 +141,9 @@ describe("AnimatedAsciiPreview", () => {
       />,
     );
 
-    expect(container.querySelector(".color-preview")?.getAttribute("style")).toContain(
-      "grid-template-columns: repeat(2, 1ch)",
-    );
+    expect(container.querySelector(".color-preview canvas")).toBeTruthy();
+    expect(container.querySelectorAll(".color-preview span")).toHaveLength(0);
+    expect(fillText).toHaveBeenCalledWith("A", 0, 0);
+    expect(fillText).toHaveBeenCalledWith("B", 7, 0);
   });
 });
