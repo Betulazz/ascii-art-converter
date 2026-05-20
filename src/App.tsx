@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AppTabs } from "./components/AppTabs";
 import { ImageAsciiTab } from "./components/ImageAsciiTab";
 import { TextAsciiTab } from "./components/TextAsciiTab";
+import { VideoAsciiTab } from "./components/VideoAsciiTab";
 import type { AppTab } from "./types/ascii";
 
 export default function App() {
@@ -17,7 +18,9 @@ export default function App() {
           </div>
           <AppTabs activeTab={activeTab} onChange={setActiveTab} />
         </header>
-        {activeTab === "image" ? <ImageAsciiTab /> : <TextAsciiTab />}
+        {activeTab === "image" && <ImageAsciiTab />}
+        {activeTab === "video" && <VideoAsciiTab />}
+        {activeTab === "text" && <TextAsciiTab />}
       </section>
     </main>
   );

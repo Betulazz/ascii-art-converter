@@ -7,8 +7,12 @@ pub enum AppError {
     Validation(String),
     #[error("Unsupported image format. Supported formats: PNG, JPG, JPEG, BMP, WEBP, GIF.")]
     UnsupportedFormat,
+    #[error("Unsupported video format. Supported formats: MP4, WEBM, MOV, AVI, MKV.")]
+    UnsupportedVideoFormat,
     #[error("Failed to decode image: {0}")]
     ImageDecode(String),
+    #[error("FFmpeg failed: {0}")]
+    Ffmpeg(String),
     #[error("Failed to write file: {0}")]
     Io(String),
 }

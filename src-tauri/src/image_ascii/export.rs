@@ -9,6 +9,9 @@ use crate::image_ascii::options::{
 
 const AUTO_TARGET_WIDTH: u32 = 160;
 const AUTO_TARGET_HEIGHT: u32 = 45;
+const MAX_CONSOLE_COLUMNS: u32 = 240;
+const MAX_CONSOLE_FRAME_LINES: u32 = 70;
+const CONSOLE_EXTRA_LINES: u32 = 4;
 
 pub fn write_txt(input: ExportTxtRequest) -> Result<String, AppError> {
     if input.text.is_empty() {
@@ -122,30 +125,42 @@ fn write_console_frames(
     frames: Vec<ExportConsoleFrame>,
     scale_mode: ConsoleScaleMode,
 ) -> Result<Vec<ConsoleFrameFile>, AppError> {
-    frames
+    let mut rendered_frames = Vec::with_capacity(frames.len());
+    let mut max_width = 1u32;
+    let mut max_height = 1u32;
+
+    for frame in frames {
+        if frame.text.is_empty() {
+            return Err(AppError::Validation(
+                "Cannot output empty GIF frame to CMD.".to_string(),
+            ));
+        }
+
+        let delay_ms = frame.delay_ms;
+        let content = render_console_content(ConsoleRenderInput {
+            text: frame.text,
+            width: frame.width,
+            height: frame.height,
+            colored_cells: frame.colored_cells,
+            scale_mode,
+        })?;
+        max_width = max_width.max(content.width);
+        max_height = max_height.max(content.height);
+        rendered_frames.push((delay_ms, content));
+    }
+
+    rendered_frames
         .into_iter()
         .enumerate()
-        .map(|(index, frame)| {
-            if frame.text.is_empty() {
-                return Err(AppError::Validation(
-                    "Cannot output empty GIF frame to CMD.".to_string(),
-                ));
-            }
-
-            let content = render_console_content(ConsoleRenderInput {
-                text: frame.text,
-                width: frame.width,
-                height: frame.height,
-                colored_cells: frame.colored_cells,
-                scale_mode,
-            })?;
+        .map(|(index, (delay_ms, content))| {
             let path = work_dir.join(format!("frame-{:04}.txt", index + 1));
-            fs::write(&path, content.text).map_err(|error| AppError::Io(error.to_string()))?;
+            fs::write(&path, pad_console_frame_text(&content.text, max_width, max_height))
+                .map_err(|error| AppError::Io(error.to_string()))?;
             Ok(ConsoleFrameFile {
                 path,
-                delay_ms: frame.delay_ms,
-                width: content.width,
-                height: content.height,
+                delay_ms,
+                width: max_width,
+                height: max_height,
             })
         })
         .collect()
@@ -214,8 +229,27 @@ fn render_console_content(input: ConsoleRenderInput) -> Result<ConsoleRenderCont
     })
 }
 
+fn pad_console_frame_text(text: &str, width: u32, height: u32) -> String {
+    let mut padded = String::new();
+    let lines = text.lines().collect::<Vec<_>>();
+
+    for y in 0..height as usize {
+        if y > 0 {
+            padded.push('\n');
+        }
+        let line = lines.get(y).copied().unwrap_or("");
+        padded.push_str(line);
+        let visible_width = line.chars().count() as u32;
+        for _ in visible_width..width {
+            padded.push(' ');
+        }
+    }
+
+    padded
+}
+
 fn console_target_dimensions(width: u32, height: u32, scale_mode: ConsoleScaleMode) -> (u32, u32) {
-    match scale_mode {
+    let (target_width, target_height) = match scale_mode {
         ConsoleScaleMode::Full => (width, height),
         ConsoleScaleMode::ThreeQuarter => (scaled_dimension(width, 3, 4), scaled_dimension(height, 3, 4)),
         ConsoleScaleMode::Half => (scaled_dimension(width, 1, 2), scaled_dimension(height, 1, 2)),
@@ -223,11 +257,18 @@ fn console_target_dimensions(width: u32, height: u32, scale_mode: ConsoleScaleMo
             let scale_denominator = width.div_ceil(AUTO_TARGET_WIDTH).max(height.div_ceil(AUTO_TARGET_HEIGHT)).max(1);
             (width.div_ceil(scale_denominator), height.div_ceil(scale_denominator))
         }
-    }
+    };
+
+    fit_console_dimensions(target_width, target_height, MAX_CONSOLE_COLUMNS, MAX_CONSOLE_FRAME_LINES)
 }
 
 fn scaled_dimension(value: u32, numerator: u32, denominator: u32) -> u32 {
     ((value * numerator).div_ceil(denominator)).max(1)
+}
+
+fn fit_console_dimensions(width: u32, height: u32, max_width: u32, max_height: u32) -> (u32, u32) {
+    let scale_denominator = width.div_ceil(max_width).max(height.div_ceil(max_height)).max(1);
+    (width.div_ceil(scale_denominator).max(1), height.div_ceil(scale_denominator).max(1))
 }
 
 fn ansi_colored_char(cell: &ColoredCell, fallback: char) -> String {
@@ -266,8 +307,8 @@ where
     };
 
     ConsoleLayout {
-        columns: width.clamp(40, 240),
-        lines: (height + 4).clamp(12, 80),
+        columns: width.clamp(40, MAX_CONSOLE_COLUMNS),
+        lines: (height + CONSOLE_EXTRA_LINES).clamp(12, MAX_CONSOLE_FRAME_LINES + CONSOLE_EXTRA_LINES),
         font_size,
     }
 }
@@ -313,22 +354,24 @@ fn build_static_console_script(text_path: &std::path::Path, columns: u32, lines:
 
 fn build_gif_console_script(frames: &[ConsoleFrameFile], columns: u32, lines: u32, font_size: u32) -> String {
     let mut script = format!(
-        "{}\r\nSet-ConsoleFontSize {font_size}\r\ncmd /c \"mode con: cols={columns} lines={lines}\"\r\n",
+        "{}\r\nSet-ConsoleFontSize {font_size}\r\ncmd /c \"mode con: cols={columns} lines={lines}\"\r\n$esc = [char]27\r\n[Console]::Write(\"$esc[?1049h$esc[?25l$esc[2J$esc[H\")\r\n[Console]::CursorVisible = $false\r\ntry {{\r\n",
         powershell_console_font_helper()
     );
     script.push_str("while ($true) {\r\n");
     for frame in frames {
-        script.push_str("  Clear-Host\r\n");
+        script.push_str("  [Console]::Write(\"$esc[H\")\r\n");
         script.push_str(&format!(
-            "  Get-Content -LiteralPath '{}' -Raw -Encoding UTF8 | Write-Host -NoNewline\r\n",
+            "  $frameText = Get-Content -LiteralPath '{}' -Raw -Encoding UTF8\r\n",
             escape_powershell_single_quoted(&frame.path.to_string_lossy())
         ));
+        script.push_str("  [Console]::Write($frameText)\r\n");
         script.push_str(&format!(
             "  Start-Sleep -Milliseconds {}\r\n",
             frame.delay_ms
         ));
     }
     script.push_str("}\r\n");
+    script.push_str("} finally {\r\n  [Console]::CursorVisible = $true\r\n  [Console]::Write(\"$esc[?25h$esc[?1049l\")\r\n}\r\n");
     script
 }
 
@@ -454,12 +497,35 @@ mod tests {
         );
 
         assert!(script.contains("while ($true)"));
-        assert!(script.contains("Clear-Host"));
+        assert!(script.contains("$esc[?1049h"));
+        assert!(script.contains("$esc[H"));
+        assert!(!script.contains("Clear-Host"));
         assert!(script.contains("Get-Content -LiteralPath 'C:\\Temp\\frame-1.txt'"));
         assert!(script.contains("Start-Sleep -Milliseconds 50"));
         assert!(script.contains("Get-Content -LiteralPath 'C:\\Temp\\frame-2.txt'"));
         assert!(script.contains("Start-Sleep -Milliseconds 80"));
         assert!(!script.contains("Read-Host 'Press Enter to close'"));
+    }
+
+    #[test]
+    fn gif_console_script_hides_cursor_and_uses_raw_frame_writes() {
+        let script = build_gif_console_script(
+            &[ConsoleFrameFile {
+                path: PathBuf::from("C:\\Temp\\frame-1.txt"),
+                delay_ms: 50,
+                width: 2,
+                height: 1,
+            }],
+            80,
+            24,
+            8,
+        );
+
+        assert!(script.contains("[Console]::CursorVisible = $false"));
+        assert!(script.contains("[Console]::Write($frameText)"));
+        assert!(script.contains("finally {"));
+        assert!(script.contains("[Console]::CursorVisible = $true"));
+        assert!(script.contains("$esc[?1049l"));
     }
 
     #[test]
@@ -501,6 +567,28 @@ mod tests {
         assert_eq!(content.text, "ac\nik");
         assert_eq!(content.width, 2);
         assert_eq!(content.height, 2);
+    }
+
+    #[test]
+    fn full_scale_console_content_fits_inside_visible_console_area() {
+        let content = render_console_content(ConsoleRenderInput {
+            text: (0..160).map(|_| "@".repeat(120)).collect::<Vec<_>>().join("\n"),
+            width: Some(120),
+            height: Some(160),
+            colored_cells: None,
+            scale_mode: ConsoleScaleMode::Full,
+        })
+        .unwrap();
+
+        assert!(content.width <= MAX_CONSOLE_COLUMNS);
+        assert!(content.height <= MAX_CONSOLE_FRAME_LINES);
+    }
+
+    #[test]
+    fn animated_console_layout_keeps_frame_area_below_window_height() {
+        let layout = console_layout([(120, MAX_CONSOLE_FRAME_LINES)], ConsoleScaleMode::Full);
+
+        assert_eq!(layout.lines, MAX_CONSOLE_FRAME_LINES + CONSOLE_EXTRA_LINES);
     }
 
     #[test]

@@ -202,6 +202,10 @@ textarea:focus {
   border: 1px solid rgba(24, 33, 31, 0.16);
 }
 
+.full-width-button {
+  width: 100%;
+}
+
 .primary-button:disabled,
 .secondary-button:disabled {
   cursor: not-allowed;

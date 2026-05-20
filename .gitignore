@@ -3,6 +3,7 @@ dist/
 target/
 src-tauri/target/
 src-tauri/gen/schemas/
+src-tauri/bin/ffmpeg-*.exe
 *.log
 .DS_Store
 Thumbs.db

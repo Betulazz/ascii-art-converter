@@ -1,4 +1,4 @@
-import { FileImage, Type } from "lucide-react";
+import { FileImage, Film, Type } from "lucide-react";
 import type { AppTab } from "../types/ascii";
 
 type AppTabsProps = {
@@ -12,6 +12,10 @@ export function AppTabs({ activeTab, onChange }: AppTabsProps) {
       <button className={activeTab === "image" ? "active" : ""} onClick={() => onChange("image")}>
         <FileImage size={17} />
         图片转字符画
+      </button>
+      <button className={activeTab === "video" ? "active" : ""} onClick={() => onChange("video")}>
+        <Film size={17} />
+        视频转字符画
       </button>
       <button className={activeTab === "text" ? "active" : ""} onClick={() => onChange("text")}>
         <Type size={17} />

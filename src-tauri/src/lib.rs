@@ -9,9 +9,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::convert_image_to_ascii,
             commands::convert_gif_to_ascii,
+            commands::convert_video_to_ascii,
             commands::export_ascii_gif,
             commands::export_ascii_console,
             commands::export_ascii_png,
+            commands::export_ascii_video,
             commands::export_ascii_txt
         ])
         .run(tauri::generate_context!())

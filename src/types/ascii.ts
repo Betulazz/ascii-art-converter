@@ -20,6 +20,17 @@ export type AsciiResult = {
   coloredCells?: ColoredCell[];
 };
 
+export type VideoAsciiRequest = {
+  path: string;
+  fileName: string;
+  outputWidth: number;
+  charset: string;
+  invert: boolean;
+  preserveAspectRatio: boolean;
+  colorPreview: boolean;
+  targetFps: number;
+};
+
 export type GifAsciiFrame = {
   text: string;
   width: number;
@@ -28,12 +39,20 @@ export type GifAsciiFrame = {
   coloredCells?: ColoredCell[];
 };
 
-export type GifAsciiResult = {
-  frames: GifAsciiFrame[];
+export type AnimatedAsciiFrame = GifAsciiFrame;
+
+export type AnimatedAsciiResult = {
+  frames: AnimatedAsciiFrame[];
   width: number;
   height: number;
   frameCount: number;
   totalDurationMs: number;
+};
+
+export type GifAsciiResult = AnimatedAsciiResult;
+
+export type VideoAsciiResult = AnimatedAsciiResult & {
+  sourceFps: number;
 };
 
 export type ImageConversionResult = AsciiResult | GifAsciiResult;
@@ -50,6 +69,12 @@ export type ExportGifRequest = {
 
 export type ExportPngRequest = {
   pngBytes: number[];
+  path: string;
+};
+
+export type ExportVideoRequest = {
+  framePngBytes: number[][];
+  fps: number;
   path: string;
 };
 
@@ -79,4 +104,4 @@ export type TextAsciiRequest = {
   horizontalLayout: "default" | "full" | "fitted";
 };
 
-export type AppTab = "image" | "text";
+export type AppTab = "image" | "video" | "text";

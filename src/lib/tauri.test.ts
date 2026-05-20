@@ -1,12 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { convertGifToAscii, exportAsciiConsole, exportAsciiGif, exportAsciiPng } from "./tauri";
+import {
+  chooseVideoOpenPath,
+  convertGifToAscii,
+  convertVideoToAscii,
+  exportAsciiConsole,
+  exportAsciiGif,
+  exportAsciiPng,
+  exportAsciiVideo,
+} from "./tauri";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
 }));
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
+  open: vi.fn(),
   save: vi.fn(),
 }));
 
@@ -62,6 +72,61 @@ describe("tauri api wrappers", () => {
 
     expect(invoke).toHaveBeenCalledWith("export_ascii_console", {
       input: { title: "sample", text: "@@" },
+    });
+  });
+
+  it("opens a video picker with supported video extensions", async () => {
+    vi.mocked(open).mockResolvedValue("C:/tmp/source.mp4");
+
+    await expect(chooseVideoOpenPath()).resolves.toBe("C:/tmp/source.mp4");
+
+    expect(open).toHaveBeenCalledWith({
+      multiple: false,
+      filters: [{ name: "Video", extensions: ["mp4", "webm", "mov", "avi", "mkv"] }],
+    });
+  });
+
+  it("converts video files through the video command", async () => {
+    vi.mocked(invoke).mockResolvedValue({ frames: [], width: 0, height: 0, frameCount: 0, totalDurationMs: 0 });
+
+    await convertVideoToAscii({
+      path: "C:/tmp/source.mp4",
+      fileName: "source.mp4",
+      outputWidth: 80,
+      charset: "@.",
+      invert: false,
+      preserveAspectRatio: true,
+      colorPreview: true,
+      targetFps: 12,
+    });
+
+    expect(invoke).toHaveBeenCalledWith("convert_video_to_ascii", {
+      input: {
+        path: "C:/tmp/source.mp4",
+        fileName: "source.mp4",
+        outputWidth: 80,
+        charset: "@.",
+        invert: false,
+        preserveAspectRatio: true,
+        colorPreview: true,
+        targetFps: 12,
+      },
+    });
+  });
+
+  it("exports ascii video frames through the video command", async () => {
+    vi.mocked(invoke).mockResolvedValue("C:/tmp/ascii.mp4");
+
+    await expect(
+      exportAsciiVideo({
+        framePngBytes: [[137, 80, 78, 71]],
+        fps: 12,
+        path: "C:/tmp/ascii.mp4",
+      }),
+    ).resolves.toBe("C:/tmp/ascii.mp4");
+
+    expect(invoke).toHaveBeenCalledWith("export_ascii_video", {
+      input: { framePngBytes: [[137, 80, 78, 71]], fps: 12, path: "C:/tmp/ascii.mp4" },
     });
   });
 });

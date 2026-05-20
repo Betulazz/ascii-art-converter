@@ -1,9 +1,10 @@
 use crate::errors::AppError;
 use crate::image_ascii::converter::{convert_gif, convert_image};
 use crate::image_ascii::export::{open_console, write_gif, write_png, write_txt};
+use crate::image_ascii::video::{convert_video, export_video};
 use crate::image_ascii::options::{
-    AsciiResult, ExportConsoleRequest, ExportGifRequest, ExportPngRequest, ExportTxtRequest,
-    GifAsciiResult, ImageAsciiRequest,
+    AsciiResult, ExportConsoleRequest, ExportGifRequest, ExportPngRequest, ExportTxtRequest, ExportVideoRequest,
+    GifAsciiResult, ImageAsciiRequest, VideoAsciiRequest, VideoAsciiResult,
 };
 
 #[tauri::command]
@@ -14,6 +15,13 @@ pub fn convert_image_to_ascii(input: ImageAsciiRequest) -> Result<AsciiResult, A
 #[tauri::command]
 pub fn convert_gif_to_ascii(input: ImageAsciiRequest) -> Result<GifAsciiResult, AppError> {
     convert_gif(input)
+}
+
+#[tauri::command]
+pub async fn convert_video_to_ascii(input: VideoAsciiRequest) -> Result<VideoAsciiResult, AppError> {
+    tauri::async_runtime::spawn_blocking(move || convert_video(input))
+        .await
+        .map_err(|error| AppError::Validation(format!("Video conversion task failed: {error}")))?
 }
 
 #[tauri::command]
@@ -29,6 +37,13 @@ pub fn export_ascii_gif(input: ExportGifRequest) -> Result<String, AppError> {
 #[tauri::command]
 pub fn export_ascii_png(input: ExportPngRequest) -> Result<String, AppError> {
     write_png(input)
+}
+
+#[tauri::command]
+pub async fn export_ascii_video(input: ExportVideoRequest) -> Result<String, AppError> {
+    tauri::async_runtime::spawn_blocking(move || export_video(input))
+        .await
+        .map_err(|error| AppError::Validation(format!("Video export task failed: {error}")))?
 }
 
 #[tauri::command]

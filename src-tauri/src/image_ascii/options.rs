@@ -22,6 +22,19 @@ pub struct AsciiResult {
     pub colored_cells: Option<Vec<ColoredCell>>,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VideoAsciiRequest {
+    pub path: String,
+    pub file_name: String,
+    pub output_width: u32,
+    pub charset: String,
+    pub invert: bool,
+    pub preserve_aspect_ratio: bool,
+    pub color_preview: bool,
+    pub target_fps: u32,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GifAsciiFrame {
@@ -41,6 +54,17 @@ pub struct GifAsciiResult {
     pub height: u32,
     pub frame_count: usize,
     pub total_duration_ms: u32,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VideoAsciiResult {
+    pub frames: Vec<GifAsciiFrame>,
+    pub width: u32,
+    pub height: u32,
+    pub frame_count: usize,
+    pub total_duration_ms: u32,
+    pub source_fps: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -68,6 +92,14 @@ pub struct ExportGifRequest {
 #[serde(rename_all = "camelCase")]
 pub struct ExportPngRequest {
     pub png_bytes: Vec<u8>,
+    pub path: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportVideoRequest {
+    pub frame_png_bytes: Vec<Vec<u8>>,
+    pub fps: u32,
     pub path: String,
 }
 
