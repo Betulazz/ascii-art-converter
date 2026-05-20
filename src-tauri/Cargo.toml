@@ -1,6 +1,6 @@
 [package]
 name = "ascii-art-converter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Desktop ASCII art converter"
 authors = ["ascii-art-converter"]
 edition = "2021"
