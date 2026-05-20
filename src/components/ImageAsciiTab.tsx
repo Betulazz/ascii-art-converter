@@ -26,7 +26,13 @@ export function ImageAsciiTab() {
   const fileStem = useMemo(() => file?.name.replace(/\.[^.]+$/, "") ?? "ascii-art", [file]);
   const exportText = result ? (isGifAsciiResult(result) ? buildGifExportText(result) : result.text) : "";
   const consoleFrames = isGifAsciiResult(result)
-    ? result.frames.map((frame) => ({ text: frame.text, delayMs: frame.delayMs }))
+    ? result.frames.map((frame) => ({
+        text: frame.text,
+        width: frame.width,
+        height: frame.height,
+        delayMs: frame.delayMs,
+        coloredCells: frame.coloredCells,
+      }))
     : undefined;
 
   async function handleConvert() {
@@ -94,7 +100,15 @@ export function ImageAsciiTab() {
             <Wand2 size={17} />
             {isWorking ? "\u8f6c\u6362\u4e2d" : "\u751f\u6210\u5b57\u7b26\u753b"}
           </button>
-          <ExportActions text={exportText} fileStem={fileStem} onStatus={setStatus} consoleFrames={consoleFrames} />
+          <ExportActions
+            text={exportText}
+            fileStem={fileStem}
+            onStatus={setStatus}
+            consoleFrames={consoleFrames}
+            consoleWidth={result && !isGifAsciiResult(result) ? result.width : undefined}
+            consoleHeight={result && !isGifAsciiResult(result) ? result.height : undefined}
+            consoleColoredCells={result && !isGifAsciiResult(result) ? result.coloredCells : undefined}
+          />
           {result &&
             (isGifAsciiResult(result) ? (
               <GifExportActions result={result} fileStem={fileStem} onStatus={setStatus} />

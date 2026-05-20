@@ -55,12 +55,21 @@ export type ExportPngRequest = {
 
 export type ExportConsoleFrame = {
   text: string;
+  width?: number;
+  height?: number;
   delayMs: number;
+  coloredCells?: ColoredCell[];
 };
+
+export type ConsoleScaleMode = "auto" | "100" | "75" | "50";
 
 export type ExportConsoleRequest = {
   title: string;
+  scaleMode?: ConsoleScaleMode;
   text?: string;
+  width?: number;
+  height?: number;
+  coloredCells?: ColoredCell[];
   frames?: ExportConsoleFrame[];
 };
 

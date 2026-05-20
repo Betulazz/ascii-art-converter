@@ -1,15 +1,28 @@
+import { useState } from "react";
 import { Copy, Download, Terminal } from "lucide-react";
 import { chooseTxtExportPath, exportAsciiConsole, exportAsciiTxt } from "../lib/tauri";
-import type { ExportConsoleFrame } from "../types/ascii";
+import type { ColoredCell, ConsoleScaleMode, ExportConsoleFrame } from "../types/ascii";
 
 type ExportActionsProps = {
   text: string;
   fileStem: string;
   onStatus: (message: string) => void;
   consoleFrames?: ExportConsoleFrame[];
+  consoleWidth?: number;
+  consoleHeight?: number;
+  consoleColoredCells?: ColoredCell[];
 };
 
-export function ExportActions({ text, fileStem, onStatus, consoleFrames }: ExportActionsProps) {
+export function ExportActions({
+  text,
+  fileStem,
+  onStatus,
+  consoleFrames,
+  consoleWidth,
+  consoleHeight,
+  consoleColoredCells,
+}: ExportActionsProps) {
+  const [consoleScaleMode, setConsoleScaleMode] = useState<ConsoleScaleMode>("auto");
   const canOpenConsole = Boolean(text || consoleFrames?.length);
 
   async function handleCopy() {
@@ -53,14 +66,19 @@ export function ExportActions({ text, fileStem, onStatus, consoleFrames }: Expor
 
     try {
       const title = fileStem || "ascii-art";
-      const message = await exportAsciiConsole(
-        consoleFrames?.length
-          ? { title, frames: consoleFrames }
+      const request = {
+        title,
+        scaleMode: consoleScaleMode,
+        ...(consoleFrames?.length
+          ? { frames: consoleFrames }
           : {
-              title,
               text,
-            },
-      );
+              ...(consoleWidth ? { width: consoleWidth } : {}),
+              ...(consoleHeight ? { height: consoleHeight } : {}),
+              ...(consoleColoredCells?.length ? { coloredCells: consoleColoredCells } : {}),
+            }),
+      };
+      const message = await exportAsciiConsole(request);
       onStatus(message);
     } catch (error) {
       onStatus(error instanceof Error ? error.message : String(error));
@@ -77,6 +95,15 @@ export function ExportActions({ text, fileStem, onStatus, consoleFrames }: Expor
         <Download size={17} />
         导出 TXT
       </button>
+      <label className="inline-control">
+        CMD 适配
+        <select value={consoleScaleMode} onChange={(event) => setConsoleScaleMode(event.target.value as ConsoleScaleMode)}>
+          <option value="auto">自动</option>
+          <option value="100">100%</option>
+          <option value="75">75%</option>
+          <option value="50">50%</option>
+        </select>
+      </label>
       <button className="secondary-button" onClick={handleOpenConsole} disabled={!canOpenConsole}>
         <Terminal size={17} />
         输出到 CMD

@@ -43,7 +43,7 @@ pub struct GifAsciiResult {
     pub total_duration_ms: u32,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ColoredCell {
     pub char: String,
@@ -75,13 +75,20 @@ pub struct ExportPngRequest {
 #[serde(rename_all = "camelCase")]
 pub struct ExportConsoleFrame {
     pub text: String,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
     pub delay_ms: u32,
+    pub colored_cells: Option<Vec<ColoredCell>>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportConsoleRequest {
     pub title: String,
+    pub scale_mode: Option<String>,
     pub text: Option<String>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+    pub colored_cells: Option<Vec<ColoredCell>>,
     pub frames: Option<Vec<ExportConsoleFrame>>,
 }

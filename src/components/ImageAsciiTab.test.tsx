@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ImageAsciiTab, buildGifExportText } from "./ImageAsciiTab";
 import { convertGifToAscii, convertImageToAscii, exportAsciiConsole } from "../lib/tauri";
 
@@ -12,6 +12,10 @@ vi.mock("../lib/tauri", () => ({
 }));
 
 describe("ImageAsciiTab", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders the empty preview placeholder as readable Chinese text", () => {
     render(<ImageAsciiTab />);
 
@@ -86,9 +90,61 @@ describe("ImageAsciiTab", () => {
     await waitFor(() =>
       expect(exportAsciiConsole).toHaveBeenCalledWith({
         title: "animation",
+        scaleMode: "auto",
         frames: [
-          { text: "AA", delayMs: 50 },
-          { text: "BB", delayMs: 80 },
+          { text: "AA", width: 2, height: 1, delayMs: 50 },
+          { text: "BB", width: 2, height: 1, delayMs: 80 },
+        ],
+      }),
+    );
+  });
+
+  it("passes colored gif cells to the cmd console command", async () => {
+    vi.mocked(convertGifToAscii).mockResolvedValue({
+      frames: [
+        {
+          text: "@.",
+          width: 2,
+          height: 1,
+          delayMs: 50,
+          coloredCells: [
+            { char: "@", foreground: "#ff0000" },
+            { char: ".", foreground: "#00ff00" },
+          ],
+        },
+      ],
+      width: 2,
+      height: 1,
+      frameCount: 1,
+      totalDurationMs: 50,
+    });
+    vi.mocked(exportAsciiConsole).mockResolvedValue("Opened CMD console.");
+
+    const { container } = render(<ImageAsciiTab />);
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const convertButton = container.querySelector("button.primary-button") as HTMLButtonElement;
+    const file = new File([new Uint8Array([1, 2, 3])], "color.gif", { type: "image/gif" });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.click(convertButton);
+    await waitFor(() => expect(convertGifToAscii).toHaveBeenCalledOnce());
+    fireEvent.click(screen.getByRole("button", { name: /CMD/i }));
+
+    await waitFor(() =>
+      expect(exportAsciiConsole).toHaveBeenCalledWith({
+        title: "color",
+        scaleMode: "auto",
+        frames: [
+          {
+            text: "@.",
+            width: 2,
+            height: 1,
+            delayMs: 50,
+            coloredCells: [
+              { char: "@", foreground: "#ff0000" },
+              { char: ".", foreground: "#00ff00" },
+            ],
+          },
         ],
       }),
     );

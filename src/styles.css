@@ -173,6 +173,20 @@ textarea:focus {
   gap: 10px;
 }
 
+.inline-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #33403b;
+}
+
+.inline-control select {
+  min-width: 0;
+}
+
 .primary-button {
   min-height: 42px;
   padding: 0 15px;
