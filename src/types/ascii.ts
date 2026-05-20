@@ -48,6 +48,11 @@ export type ExportGifRequest = {
   path: string;
 };
 
+export type ExportPngRequest = {
+  pngBytes: number[];
+  path: string;
+};
+
 export type TextAsciiRequest = {
   text: string;
   fontName: string;

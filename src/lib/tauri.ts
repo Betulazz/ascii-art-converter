@@ -1,6 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import { save } from "@tauri-apps/plugin-dialog";
-import type { AsciiResult, ExportGifRequest, ExportTxtRequest, GifAsciiResult, ImageAsciiRequest } from "../types/ascii";
+import type {
+  AsciiResult,
+  ExportGifRequest,
+  ExportPngRequest,
+  ExportTxtRequest,
+  GifAsciiResult,
+  ImageAsciiRequest,
+} from "../types/ascii";
 
 export async function convertImageToAscii(input: ImageAsciiRequest): Promise<AsciiResult> {
   return invokeCommand<AsciiResult>("convert_image_to_ascii", { input });
@@ -18,6 +25,10 @@ export async function exportAsciiGif(input: ExportGifRequest): Promise<string> {
   return invokeCommand<string>("export_ascii_gif", { input });
 }
 
+export async function exportAsciiPng(input: ExportPngRequest): Promise<string> {
+  return invokeCommand<string>("export_ascii_png", { input });
+}
+
 export async function chooseTxtExportPath(defaultPath: string): Promise<string | null> {
   return save({
     defaultPath,
@@ -29,6 +40,13 @@ export async function chooseGifExportPath(defaultPath: string): Promise<string |
   return save({
     defaultPath,
     filters: [{ name: "GIF", extensions: ["gif"] }],
+  });
+}
+
+export async function choosePngExportPath(defaultPath: string): Promise<string | null> {
+  return save({
+    defaultPath,
+    filters: [{ name: "PNG", extensions: ["png"] }],
   });
 }
 

@@ -10,6 +10,7 @@ pub fn run() {
             commands::convert_image_to_ascii,
             commands::convert_gif_to_ascii,
             commands::export_ascii_gif,
+            commands::export_ascii_png,
             commands::export_ascii_txt
         ])
         .run(tauri::generate_context!())

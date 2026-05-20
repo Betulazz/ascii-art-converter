@@ -63,3 +63,10 @@ pub struct ExportGifRequest {
     pub gif_bytes: Vec<u8>,
     pub path: String,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportPngRequest {
+    pub png_bytes: Vec<u8>,
+    pub path: String,
+}

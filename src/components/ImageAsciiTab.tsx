@@ -4,6 +4,7 @@ import { AnimatedAsciiPreview } from "./AnimatedAsciiPreview";
 import { AsciiPreview } from "./AsciiPreview";
 import { ExportActions } from "./ExportActions";
 import { GifExportActions } from "./GifExportActions";
+import { ImageExportActions } from "./ImageExportActions";
 import { ParameterPanel } from "./ParameterPanel";
 import { convertGifToAscii, convertImageToAscii } from "../lib/tauri";
 import type { GifAsciiResult, ImageConversionResult } from "../types/ascii";
@@ -91,7 +92,12 @@ export function ImageAsciiTab() {
             {isWorking ? "\u8f6c\u6362\u4e2d" : "\u751f\u6210\u5b57\u7b26\u753b"}
           </button>
           <ExportActions text={exportText} fileStem={fileStem} onStatus={setStatus} />
-          {isGifAsciiResult(result) && <GifExportActions result={result} fileStem={fileStem} onStatus={setStatus} />}
+          {result &&
+            (isGifAsciiResult(result) ? (
+              <GifExportActions result={result} fileStem={fileStem} onStatus={setStatus} />
+            ) : (
+              <ImageExportActions result={result} fileStem={fileStem} onStatus={setStatus} />
+            ))}
         </div>
         {status && <p className="status">{status}</p>}
       </aside>
