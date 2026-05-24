@@ -24,6 +24,9 @@ describe("ImageAsciiTab", () => {
     render(<ImageAsciiTab />);
 
     expect(screen.getByText("选择图片并生成后，字符画会显示在这里。")).not.toBeNull();
+    expect(screen.getByLabelText("图片文件")).not.toBeNull();
+    expect(screen.getByLabelText("输出宽度")).not.toBeNull();
+    expect(screen.getByLabelText("自定义字符集")).not.toBeNull();
     expect(screen.queryByText(/\\u9009/)).toBeNull();
   });
 

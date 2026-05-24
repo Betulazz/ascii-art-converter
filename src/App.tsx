@@ -12,9 +12,14 @@ export default function App() {
     <main className="app-shell">
       <section className="workspace">
         <header className="workspace-header">
-          <div>
-            <h1>字符画转换器</h1>
-            <p>图片和文字转等宽字符画，面向本地桌面工作流。</p>
+          <div className="brand-block">
+            <div className="brand-mark" aria-hidden="true">
+              @
+            </div>
+            <div>
+              <h1>字符画工作台</h1>
+              <p>图片、GIF、视频和文字转等宽字符画，所有处理都在本地完成。</p>
+            </div>
           </div>
           <AppTabs activeTab={activeTab} onChange={setActiveTab} />
         </header>

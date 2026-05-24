@@ -11,15 +11,15 @@ export function AppTabs({ activeTab, onChange }: AppTabsProps) {
     <nav className="tabs" aria-label="转换类型">
       <button className={activeTab === "image" ? "active" : ""} onClick={() => onChange("image")}>
         <FileImage size={17} />
-        图片转字符画
+        图片 / GIF
       </button>
       <button className={activeTab === "video" ? "active" : ""} onClick={() => onChange("video")}>
         <Film size={17} />
-        视频转字符画
+        视频
       </button>
       <button className={activeTab === "text" ? "active" : ""} onClick={() => onChange("text")}>
         <Type size={17} />
-        文字转字符画
+        文字
       </button>
     </nav>
   );
